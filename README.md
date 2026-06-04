@@ -58,7 +58,7 @@ This makes the extension modular, lightweight, and framework-friendly, so you ca
 
 ---
 
-# 🧠 Quarkus Multitenancy Core Runtime
+## 🧠 Quarkus Multitenancy Core Runtime
 
 The **core foundation** of the Quarkus Multitenancy extension.
 
