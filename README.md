@@ -58,7 +58,8 @@ This makes the extension modular, lightweight, and framework-friendly, so you ca
 
 ---
 
-## 🧠 Quarkus Multitenancy Core Runtime
+## 🧠 Quarkus Multitenancy Core Runtime
+
 
 The **core foundation** of the Quarkus Multitenancy extension.
 
@@ -101,11 +102,13 @@ This means the extension provides the tenant resolution layer. The application r
 
 To enable HTTP tenant resolution:
 
-```xml
-<dependency>
-    <groupId>io.quarkiverse.multitenancy</groupId>
-    <artifactId>quarkus-multitenancy-http</artifactId>
-    <version>${quarkus-multitenancy.version}</version>
+<dependencies>
+    <dependency>
+        <groupId>io.quarkiverse.multitenancy</groupId>
+        <artifactId>quarkus-multitenancy-http</artifactId>
+        <version>${quarkus-multitenancy.version}</version>
+    </dependency>
+</dependencies>
 </dependency>
 ```
 
