@@ -102,17 +102,26 @@ This means the extension provides the tenant resolution layer. The application r
 
 To enable HTTP tenant resolution:
 
+<dependencies>
+
+    <dependency>
+
+        <groupId>io.quarkiverse.multitenancy</groupId>
+
+        <artifactId>quarkus-multitenancy-http</artifactId>
+
+        <version>${quarkus-multitenancy.version}</version>
+
+    </dependency>
+
+</dependencies>
 <dependencies>
     <dependency>
         <groupId>io.quarkiverse.multitenancy</groupId>
-        <artifactId>quarkus-multitenancy-http</artifactId>
+        <artifactId>quarkus-multitenancy-orm</artifactId>
         <version>${quarkus-multitenancy.version}</version>
     </dependency>
 </dependencies>
-</dependency>
-```
-
-To enable ORM integration:
 
 ```xml
 <dependency>
