@@ -94,7 +94,7 @@ The current tenant will be resolved as `tenant1`.
 
 == Basic usage
 
-By default, the HTTP module runs the strategy chain `header,cookie`. Each strategy is tried in order, and the first resolver that returns a value wins.
+By default, the HTTP module runs the strategy chain `header,jwt,cookie`. Each strategy is tried in order, and the first resolver that returns a value wins.
 
 Example showing the default chain in action (header resolves first because the request supplies `X-Tenant`):
 
@@ -260,7 +260,7 @@ Main options include:
 | Enables or disables HTTP tenant resolution.
 
 | `quarkus.multi-tenant.http.strategy`
-| `header,cookie`
+| `header,jwt,cookie`
 | Ordered list of built-in tenant resolution strategies.
 
 | `quarkus.multi-tenant.http.header-name`
