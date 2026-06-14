@@ -42,7 +42,7 @@ Initial Quarkiverse preview release.
 ### Operator notes
 
 - The extension is marked as **preview** while the API stabilises. Source and binary compatibility may change before `1.0`.
-- The default strategy chain is `header,jwt,cookie`. Applications that include the `jwt` strategy (explicitly or via the implicit default) **must** configure one of the following before the application boots:
+- The default strategy chain is `header,cookie`. Applications that include the `jwt` strategy **must** configure one of the following before the application boots:
     - SmallRye JWT verification via `mp.jwt.verify.publickey.*` and `mp.jwt.verify.issuer`.
     - Quarkus OIDC via `quarkus.oidc.auth-server-url` (or a named-tenant equivalent such as `quarkus.oidc.<tenant>.auth-server-url`).
 - Applications that produce a custom `JsonWebToken` outside of SmallRye JWT / OIDC can opt out of the boot-time verification check with `quarkus.multi-tenant.http.jwt.skip-startup-check=true`.

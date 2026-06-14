@@ -36,7 +36,7 @@ public interface HttpTenantConfig {
      * resolution typically requires an application-specific URL prefix
      * and is opt-in (see {@link #pathPattern()}).
      */
-    @WithDefault("header,jwt,cookie")
+    @WithDefault("header,cookie")
     List<String> strategy();
 
     /**
