@@ -116,6 +116,51 @@ X-Tenant: acme
 
 will resolve the current tenant as `acme`.
 
+=== Custom TenantResolver precedence
+
+In addition to the configured built-in strategy chain, the extension also resolves users through custom `TenantResolver` beans first.
+
+The dispatch order is:
+
+1. Custom resolvers (CDI beans whose `name()` is empty or unknown).
+2. Built-in resolvers listed by `quarkus.multi-tenant.http.strategy`.
+
+That means custom resolvers can intentionally override header/cookie/path/jwt behavior.
+If a custom resolver returns `resolved` or `rejected`, dispatch stops immediately.
+Only when the custom resolver returns `notApplicable` does the framework continue with the built-in chain.
+
+A common pattern is an override that only applies on a special header:
+
+[source,java]
+----
+package io.github.demo.resolver;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.container.ContainerRequestContext;
+
+import io.quarkiverse.multitenancy.core.runtime.api.TenantResolution;
+import io.quarkiverse.multitenancy.core.runtime.api.TenantResolutionContext;
+import io.quarkiverse.multitenancy.core.runtime.api.TenantResolver;
+
+@ApplicationScoped
+public class HeaderOverrideTenantResolver implements TenantResolver {
+
+    @Override
+    public TenantResolution resolve(TenantResolutionContext context) {
+        return context.get(ContainerRequestContext.class)
+            .filter(req -> req.getHeaderString("X-Tenant-Override") != null)
+            .map(req -> req.getHeaderString("X-Tenant-Override"))
+            .map(TenantResolution::resolved)
+            .orElseGet(TenantResolution::notApplicable);
+    }
+}
+----
+
+Behavior in this example:
+
+* Requests that send `X-Tenant-Override` are forced to that tenant and built-in strategies are skipped.
+* Requests without that header continue through the configured built-in strategy list.
+
 == Accessing the current tenant
 
 Application code can inject `TenantContext` to access the resolved tenant during request processing.
