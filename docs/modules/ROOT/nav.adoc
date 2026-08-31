@@ -1,5 +1,6 @@
 * xref:index.adoc[Overview]
 * xref:context-propagation.adoc[Tenant context propagation]
+* xref:kafka-tenant-propagation.adoc[Kafka tenant propagation]
 * xref:runtime-contracts.adoc[Runtime contracts and validation boundaries]
 * xref:programmatic-tenant-connections.adoc[Programmatic tenant connections]
 * xref:migration-0.2.adoc[Migration notes for 0.2]

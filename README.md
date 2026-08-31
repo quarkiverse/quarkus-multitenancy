@@ -7,7 +7,9 @@
 ![Quarkus](https://img.shields.io/badge/Quarkus-3.x-red)
 ![Status](https://img.shields.io/badge/status-preview-orange)
 
-> A modular multitenancy extension for Quarkus providing a shared tenant context, pluggable HTTP resolution, Kafka tenant propagation, and Hibernate ORM integration.
+> **Resolve a tenant once. Keep it across HTTP, reactive code, Kafka, background work, and Hibernate ORM.**
+
+A modular multitenancy extension for Quarkus providing a shared tenant context, pluggable HTTP resolution, Kafka tenant propagation, and Hibernate ORM integration.
 
 Quarkus Multitenancy provides a generic tenant-resolution contract and a request-scoped `TenantContext` that can be reused across application and integration boundaries.
 
@@ -18,6 +20,80 @@ The extension focuses on **tenant identification and propagation**. It does not 
 Quarkus already provides powerful building blocks such as OIDC multitenancy and Hibernate ORM multitenancy. Applications still frequently need a common tenant abstraction that can be resolved once and consumed consistently across HTTP, persistence, messaging, background work, and custom integrations.
 
 This extension provides that reusable layer while keeping the individual integrations independent.
+
+```text
+                         ┌──────────────────────────┐
+ HTTP request            │ header · cookie · JWT   │
+ ───────────────────────▶│ path · custom resolver │
+                         └────────────┬─────────────┘
+                                      │
+                                      ▼
+                             ┌─────────────────┐
+                             │  TenantContext  │
+                             └───────┬─────────┘
+                                     │
+                 ┌───────────────────┼────────────────────┐
+                 │                   │                    │
+                 ▼                   ▼                    ▼
+        Reactive / worker      Hibernate ORM         Kafka producer
+             work             tenant routing       X-Tenant header
+                                                        │
+                                                        ▼
+                                                  Kafka consumer
+                                                        │
+                                                        ▼
+                                                  TenantContext
+```
+
+### End-to-end in 60 seconds
+
+An incoming request can establish a tenant once:
+
+```http
+POST /orders
+X-Tenant: acme
+```
+
+Downstream application code reads the shared context:
+
+```java
+@Inject
+TenantContext tenantContext;
+
+String tenant = tenantContext.getTenantId().orElseThrow();
+```
+
+Hibernate ORM can use that same context for tenant routing. If the application then publishes through a Kafka channel:
+
+```java
+@Inject
+@Channel("orders")
+Emitter<String> orders;
+
+void publish(String order) {
+    orders.send(order);
+}
+```
+
+the Kafka integration can propagate the current tenant as record metadata:
+
+```text
+X-Tenant: acme
+```
+
+and restore it for the consumer handler:
+
+```java
+@Incoming("orders")
+void consume(String order) {
+    String tenant = tenantContext.getTenantId().orElseThrow();
+    // tenant == "acme"
+}
+```
+
+**One tenant identity from HTTP ingress to persistence to Kafka consumer, without putting `tenantId` in every application payload.**
+
+See the [Kafka tenant propagation guide](docs/modules/ROOT/pages/kafka-tenant-propagation.adoc) for the complete messaging contract, validation, strict missing-tenant policies, and failure handling.
 
 ## Modules
 
@@ -204,6 +280,8 @@ quarkus.multi-tenant.messaging.kafka.tenant-id.pattern=[A-Za-z0-9_-]+
 
 Applications can also provide CDI beans implementing `KafkaTenantValidator` for domain-specific checks.
 
+For complete producer/consumer examples, explicit-header precedence, strict missing-tenant behavior, validation inheritance, custom validators, and nack/failure-strategy guidance, see the [dedicated Kafka tenant propagation guide](docs/modules/ROOT/pages/kafka-tenant-propagation.adoc).
+
 ## Hibernate ORM integration
 
 Add the ORM extension:
@@ -276,7 +354,10 @@ Relevant source pages in this repository include:
 
 - `docs/modules/ROOT/pages/index.adoc`
 - `docs/modules/ROOT/pages/context-propagation.adoc`
+- `docs/modules/ROOT/pages/kafka-tenant-propagation.adoc`
 - `docs/modules/ROOT/pages/runtime-contracts.adoc`
+- `docs/modules/ROOT/pages/programmatic-tenant-connections.adoc`
+- `docs/modules/ROOT/pages/migration-0.2.adoc`
 
 ## License
 

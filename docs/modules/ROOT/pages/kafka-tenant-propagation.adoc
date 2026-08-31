@@ -1,0 +1,251 @@
+= Kafka tenant propagation
+
+The optional Kafka module propagates tenant identity across SmallRye Reactive Messaging channels that use the Kafka connector. It carries the current tenant in a Kafka record header on outgoing messages and restores it to `TenantContext` before an incoming application handler runs.
+
+Other Reactive Messaging connectors are not modified by this module.
+
+== End-to-end flow
+
+A common use case starts with an HTTP request and continues asynchronously through Kafka:
+
+[source,text]
+----
+HTTP request
+X-Tenant: acme
+      |
+      v
+TenantContext = acme
+      |
+      v
+Kafka producer
+X-Tenant: acme
+      |
+      v
+Kafka consumer
+      |
+      v
+TenantContext = acme
+      |
+      v
+Business logic
+----
+
+The HTTP module resolves the tenant once. The Kafka module then carries that tenant across the messaging boundary so application code does not have to manually copy and restore tenant identifiers for every message.
+
+== Installation
+
+Add the Kafka module:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.quarkiverse.multitenancy</groupId>
+    <artifactId>quarkus-multitenancy-messaging-kafka</artifactId>
+    <version>${quarkus-multitenancy.version}</version>
+</dependency>
+----
+
+Incoming propagation requires the Quarkus Messaging request scope:
+
+[source,properties]
+----
+quarkus.messaging.request-scoped.enabled=true
+----
+
+If an incoming Kafka message is processed without an active request context, tenant propagation fails rather than binding request-scoped tenant state outside its supported lifecycle.
+
+The module is enabled by default and uses `X-Tenant` as the Kafka record header:
+
+[source,properties]
+----
+quarkus.multi-tenant.messaging.kafka.enabled=true
+quarkus.multi-tenant.messaging.kafka.header-name=X-Tenant
+----
+
+== Outgoing messages
+
+For an outgoing Kafka connector channel, the extension captures the tenant while the application request context is still available and adds it to the Kafka record metadata.
+
+[source,java]
+----
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
+
+import jakarta.inject.Inject;
+
+public class OrderPublisher {
+
+    @Inject
+    @Channel("orders")
+    Emitter<String> orders;
+
+    public void publish(String order) {
+        orders.send(order);
+    }
+}
+----
+
+When `publish` runs with tenant `acme` in `TenantContext`, the outgoing Kafka record receives:
+
+[source,text]
+----
+X-Tenant: acme
+----
+
+If application code already supplied the configured tenant header in `OutgoingKafkaRecordMetadata`, that explicit header takes precedence and the extension leaves it unchanged.
+
+By default, an outgoing message with no current tenant is sent without a tenant header. Applications that require every outgoing Kafka message to carry tenant metadata can fail closed:
+
+[source,properties]
+----
+quarkus.multi-tenant.messaging.kafka.fail-on-missing-outgoing-tenant=true
+----
+
+When strict outgoing handling is enabled, an explicitly supplied tenant header also satisfies the requirement; the extension does not require an ambient `TenantContext` when the application has already provided the propagation metadata.
+
+== Incoming messages
+
+For an incoming Kafka connector channel, the extension reads the configured record header and binds the value to `TenantContext` before the application handler executes.
+
+[source,java]
+----
+import jakarta.inject.Inject;
+
+import org.eclipse.microprofile.reactive.messaging.Incoming;
+
+import io.quarkiverse.multitenancy.core.runtime.context.TenantContext;
+
+public class OrderConsumer {
+
+    @Inject
+    TenantContext tenantContext;
+
+    @Incoming("orders")
+    public void consume(String order) {
+        String tenant = tenantContext.getTenantId().orElseThrow();
+        // Process the order for this tenant.
+    }
+}
+----
+
+The previous tenant value is restored before acknowledgment or negative acknowledgment delegates back to the connector, preventing one message from leaking tenant state into another.
+
+By default, a message without the tenant header is processed with an empty `TenantContext`. To reject such messages instead:
+
+[source,properties]
+----
+quarkus.multi-tenant.messaging.kafka.fail-on-missing-incoming-tenant=true
+----
+
+== Incoming tenant validation
+
+Kafka record headers are an external trust boundary. Incoming tenant identifiers are decoded as UTF-8 and validated before they are published to `TenantContext`.
+
+[source,properties]
+----
+quarkus.multi-tenant.messaging.kafka.tenant-id.validation-enabled=true
+quarkus.multi-tenant.messaging.kafka.tenant-id.max-length=64
+quarkus.multi-tenant.messaging.kafka.tenant-id.pattern=[A-Za-z0-9_-]+
+----
+
+The Kafka-specific defaults are validation enabled, maximum length `64`, and the pattern `[A-Za-z0-9_-]+`.
+
+When a Kafka tenant-id policy property is not explicitly configured, the Kafka validator reuses the corresponding HTTP tenant-id policy when one is configured. This allows applications that use both HTTP and Kafka boundaries to define a common validation policy without duplicating every setting. An explicitly configured Kafka property always takes precedence over the HTTP property.
+
+For example:
+
+[source,properties]
+----
+quarkus.multi-tenant.http.tenant-id.max-length=96
+# Kafka inherits 96 unless the Kafka-specific property is explicitly set.
+----
+
+Blank identifiers and identifiers reserved for internal extension use, including `__bootstrap`, are always rejected at the incoming Kafka boundary even when configurable pattern validation is disabled.
+
+Malformed UTF-8, a null header value, or a tenant rejected by validation causes the message to be negatively acknowledged. What happens to the Kafka channel after that nack is controlled by the SmallRye Kafka failure strategy. Configure `ignore`, a dead-letter queue, or another strategy according to the application's delivery requirements when fail-stop behavior is not appropriate.
+
+Outgoing propagation does not apply the incoming length/pattern policy to the ambient `TenantContext`: the outgoing tenant is local application state, while validation protects the incoming external boundary.
+
+== Custom Kafka tenant validation
+
+Applications can add CDI beans implementing `KafkaTenantValidator` to apply domain-specific checks in addition to the built-in syntax and length policy. Every available validator must accept an incoming tenant before it is bound to `TenantContext`.
+
+For example, an application can reject tenant identifiers that are not present in its tenant registry:
+
+[source,java]
+----
+import java.util.Optional;
+
+import jakarta.enterprise.context.ApplicationScoped;
+
+import io.quarkiverse.multitenancy.messaging.kafka.runtime.validation.KafkaTenantValidator;
+
+@ApplicationScoped
+public class RegisteredTenantValidator implements KafkaTenantValidator {
+
+    @Override
+    public Optional<String> validate(String tenantId) {
+        return isRegistered(tenantId)
+                ? Optional.empty()
+                : Optional.of("tenant is not registered");
+    }
+
+    private boolean isRegistered(String tenantId) {
+        // Check the application's tenant registry.
+        return true;
+    }
+}
+----
+
+Validator rejection reasons can be written to diagnostics, so custom validators should return a log-safe reason and should not include unsanitized request-controlled values.
+
+== Configuration validation
+
+Invalid Kafka tenant-propagation configuration fails fast instead of producing ambiguous runtime behavior:
+
+* `quarkus.multi-tenant.messaging.kafka.header-name` must not be blank.
+* `quarkus.multi-tenant.messaging.kafka.tenant-id.max-length` must be greater than zero.
+* `quarkus.multi-tenant.messaging.kafka.tenant-id.pattern` must be a valid regular expression.
+
+== Configuration reference
+
+[cols="2,1,3", options="header"]
+|===
+| Property | Default | Description
+
+| `quarkus.multi-tenant.messaging.kafka.enabled`
+| `true`
+| Enables automatic incoming and outgoing Kafka tenant propagation.
+
+| `quarkus.multi-tenant.messaging.kafka.header-name`
+| `X-Tenant`
+| Kafka record header used to carry the tenant identifier. Must not be blank.
+
+| `quarkus.multi-tenant.messaging.kafka.fail-on-missing-incoming-tenant`
+| `false`
+| Rejects an incoming Kafka message when the configured tenant header is absent.
+
+| `quarkus.multi-tenant.messaging.kafka.fail-on-missing-outgoing-tenant`
+| `false`
+| Rejects an outgoing Kafka message when neither explicit tenant metadata nor a current tenant is available.
+
+| `quarkus.multi-tenant.messaging.kafka.tenant-id.validation-enabled`
+| `true`
+| Enables configurable length and pattern validation of untrusted incoming Kafka tenant identifiers. Blank and reserved identifiers are still rejected when this is `false`. If not explicitly configured, an explicitly configured HTTP value is inherited.
+
+| `quarkus.multi-tenant.messaging.kafka.tenant-id.max-length`
+| `64`
+| Maximum accepted incoming tenant-id length. Must be greater than zero. If not explicitly configured, an explicitly configured HTTP value is inherited.
+
+| `quarkus.multi-tenant.messaging.kafka.tenant-id.pattern`
+| `[A-Za-z0-9_-]+`
+| Regular expression an incoming tenant identifier must match in full. If not explicitly configured, an explicitly configured HTTP value is inherited.
+|===
+
+== Operational guidance
+
+Treat Kafka tenant headers as untrusted input and keep validation enabled unless the application's identifier format requires a wider policy.
+
+For tenant-sensitive workloads, consider enabling both strict missing-tenant options so messages cannot silently cross a tenant boundary without metadata. Pair incoming nack behavior with an explicit Kafka failure strategy that matches the application's retry and dead-letter requirements.
+
+The Kafka module is intended for the Kafka connector boundary. For tenant propagation inside an active HTTP request or for synchronous background work, see xref:context-propagation.adoc[Tenant context propagation].
