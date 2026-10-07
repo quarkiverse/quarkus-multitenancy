@@ -57,16 +57,16 @@ class NonKafkaChannelIsolationTest {
 
     @RegisterExtension
     static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
-            .withApplicationRoot(jar -> jar.addClasses(Probe.class, SenderResource.class))
+            .withApplicationRoot(jar -> jar.addClasses(Probe.class, SenderResource.class, TestInMemoryConnector.class))
             .overrideConfigKey("quarkus.kafka.devservices.enabled", "false")
             .overrideConfigKey("quarkus.messaging.request-scoped.enabled", "true")
             .overrideConfigKey("quarkus.multi-tenant.messaging.kafka.header-name", HEADER)
-            .overrideConfigKey("mp.messaging.incoming." + INCOMING_CHANNEL + ".connector", "smallrye-in-memory")
+            .overrideConfigKey("mp.messaging.incoming." + INCOMING_CHANNEL + ".connector", TestInMemoryConnector.CONNECTOR)
             .overrideConfigKey("mp.messaging.incoming." + INCOMING_CHANNEL + ".run-on-vertx-context", "true")
-            .overrideConfigKey("mp.messaging.outgoing." + OUTGOING_CHANNEL + ".connector", "smallrye-in-memory");
+            .overrideConfigKey("mp.messaging.outgoing." + OUTGOING_CHANNEL + ".connector", TestInMemoryConnector.CONNECTOR);
 
     @Inject
-    @Connector("smallrye-in-memory")
+    @Connector(TestInMemoryConnector.CONNECTOR)
     InMemoryConnector connector;
 
     @Inject

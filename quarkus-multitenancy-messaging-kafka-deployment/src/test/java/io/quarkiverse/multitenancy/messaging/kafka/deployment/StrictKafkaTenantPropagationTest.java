@@ -60,11 +60,12 @@ class StrictKafkaTenantPropagationTest {
 
     @RegisterExtension
     static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
-            .withApplicationRoot(jar -> jar.addClasses(SenderResource.class, AllChannelsKafka.class))
+            .withApplicationRoot(
+                    jar -> jar.addClasses(SenderResource.class, AllChannelsKafka.class, TestInMemoryConnector.class))
             .overrideConfigKey("quarkus.kafka.devservices.enabled", "false")
             .overrideConfigKey("quarkus.multi-tenant.messaging.kafka.fail-on-missing-incoming-tenant", "true")
             .overrideConfigKey("quarkus.multi-tenant.messaging.kafka.fail-on-missing-outgoing-tenant", "true")
-            .overrideConfigKey("mp.messaging.outgoing." + OUTGOING_CHANNEL + ".connector", "smallrye-in-memory");
+            .overrideConfigKey("mp.messaging.outgoing." + OUTGOING_CHANNEL + ".connector", TestInMemoryConnector.CONNECTOR);
 
     @Inject
     TenantContext tenantContext;
@@ -78,7 +79,7 @@ class StrictKafkaTenantPropagationTest {
     KafkaTenantIncomingInterceptor incoming;
 
     @Inject
-    @Connector("smallrye-in-memory")
+    @Connector(TestInMemoryConnector.CONNECTOR)
     InMemoryConnector connector;
 
     @Test

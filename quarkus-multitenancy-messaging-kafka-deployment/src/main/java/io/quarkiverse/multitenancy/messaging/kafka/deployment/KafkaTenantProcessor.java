@@ -16,7 +16,6 @@
 package io.quarkiverse.multitenancy.messaging.kafka.deployment;
 
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.channel.KafkaConnectorChannels;
-import io.quarkiverse.multitenancy.messaging.kafka.runtime.config.KafkaTenantConfig;
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.decorator.KafkaTenantIncomingDecorator;
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.decorator.KafkaTenantOutgoingDecorator;
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.interceptor.KafkaTenantIncomingInterceptor;
@@ -25,7 +24,6 @@ import io.quarkiverse.multitenancy.messaging.kafka.runtime.validation.KafkaTenan
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.builditem.ConfigMappingBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 
 public class KafkaTenantProcessor {
@@ -35,11 +33,6 @@ public class KafkaTenantProcessor {
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
-    }
-
-    @BuildStep
-    ConfigMappingBuildItem kafkaTenantConfig() {
-        return new ConfigMappingBuildItem(KafkaTenantConfig.class, "quarkus.multi-tenant.messaging.kafka");
     }
 
     @BuildStep
