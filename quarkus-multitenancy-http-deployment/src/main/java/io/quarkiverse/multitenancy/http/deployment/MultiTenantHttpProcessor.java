@@ -15,7 +15,6 @@
  */
 package io.quarkiverse.multitenancy.http.deployment;
 
-import io.quarkiverse.multitenancy.http.runtime.config.HttpTenantConfig;
 import io.quarkiverse.multitenancy.http.runtime.filter.TenantFilter;
 import io.quarkiverse.multitenancy.http.runtime.resolver.CookieTenantResolver;
 import io.quarkiverse.multitenancy.http.runtime.resolver.HeaderTenantResolver;
@@ -24,7 +23,6 @@ import io.quarkiverse.multitenancy.http.runtime.resolver.PathTenantResolver;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.builditem.ConfigMappingBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 
 public class MultiTenantHttpProcessor {
@@ -34,11 +32,6 @@ public class MultiTenantHttpProcessor {
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
-    }
-
-    @BuildStep
-    ConfigMappingBuildItem httpTenantConfig() {
-        return new ConfigMappingBuildItem(HttpTenantConfig.class, "quarkus.multi-tenant.http");
     }
 
     @BuildStep
