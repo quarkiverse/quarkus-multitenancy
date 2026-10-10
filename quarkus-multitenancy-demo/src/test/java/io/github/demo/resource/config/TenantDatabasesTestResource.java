@@ -18,10 +18,16 @@ package io.github.demo.resource.config;
 import java.util.Map;
 
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 
 public class TenantDatabasesTestResource implements QuarkusTestResourceLifecycleManager {
+
+    // Use the Docker Official Image mirror to avoid Docker Hub's anonymous pull limit in CI.
+    private static final DockerImageName POSTGRES_IMAGE = DockerImageName
+            .parse("public.ecr.aws/docker/library/postgres:18")
+            .asCompatibleSubstituteFor("postgres");
 
     private PostgreSQLContainer<?> tenant1;
     private PostgreSQLContainer<?> tenant2;
@@ -56,7 +62,7 @@ public class TenantDatabasesTestResource implements QuarkusTestResourceLifecycle
     }
 
     private PostgreSQLContainer<?> postgres(String database, String username, String password, String initScript) {
-        return new PostgreSQLContainer<>("postgres:18")
+        return new PostgreSQLContainer<>(POSTGRES_IMAGE)
                 .withDatabaseName(database)
                 .withUsername(username)
                 .withPassword(password)
