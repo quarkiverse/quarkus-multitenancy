@@ -105,6 +105,10 @@ Every response must contain only the selected tenant's data.
 - default tenant → tenant1
 - header-over-cookie precedence
 
+The test containers use the PostgreSQL 18 Docker Official Image mirror at
+`public.ecr.aws/docker/library/postgres:18` to avoid Docker Hub's anonymous pull
+limit on shared CI runners. Docker and access to Amazon ECR Public are required.
+
 `UserResourceTest` remains as the manually configured PostgreSQL CRUD example when the demo databases are running on ports 5433 and 5434.
 
 From the repository root:
