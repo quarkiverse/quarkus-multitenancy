@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 /**
  * End-to-end check that a default tenant violating the tenant-id policy aborts
@@ -32,7 +32,7 @@ import io.quarkus.test.QuarkusUnitTest;
 class DefaultTenantStartupValidationTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
+    static final QuarkusExtensionTest UNIT_TEST = new QuarkusExtensionTest()
             .withApplicationRoot(jar -> jar.addClasses(MultiTenantHttpProcessor.class))
             .overrideConfigKey("quarkus.multi-tenant.http.default-tenant", "my@tenant")
             .assertException(throwable -> {

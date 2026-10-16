@@ -50,7 +50,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import io.quarkiverse.multitenancy.core.runtime.context.TenantContext;
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.channel.KafkaConnectorChannels;
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.exception.KafkaTenantPropagationException;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.smallrye.reactive.messaging.IncomingInterceptor;
 import io.smallrye.reactive.messaging.OutgoingInterceptor;
 import io.smallrye.reactive.messaging.kafka.api.IncomingKafkaRecordMetadata;
@@ -66,7 +66,7 @@ class KafkaTenantMessagingLifecycleTest {
     private static final String OUTGOING_CHANNEL = "tenant-out";
 
     @RegisterExtension
-    static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
+    static final QuarkusExtensionTest UNIT_TEST = new QuarkusExtensionTest()
             .withApplicationRoot(jar -> jar.addClasses(MessagingProbe.class, SenderResource.class,
                     AllChannelsKafka.class, ApplicationIncomingInterceptor.class,
                     ApplicationOutgoingInterceptor.class, ApplicationMarker.class, TestInMemoryConnector.class))

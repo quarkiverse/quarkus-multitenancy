@@ -44,7 +44,7 @@ import io.quarkiverse.multitenancy.messaging.kafka.runtime.exception.KafkaTenant
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.interceptor.KafkaTenantIncomingInterceptor;
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.interceptor.KafkaTenantOutgoingInterceptor;
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.validation.KafkaTenantValidator;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.smallrye.reactive.messaging.kafka.api.IncomingKafkaRecordMetadata;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
 
@@ -53,7 +53,7 @@ class KafkaTenantPropagationTest {
     private static final String HEADER = "tenant-key";
 
     @RegisterExtension
-    static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
+    static final QuarkusExtensionTest UNIT_TEST = new QuarkusExtensionTest()
             .withApplicationRoot(jar -> jar.addClass(UnknownTenantValidator.class))
             .overrideConfigKey("quarkus.kafka.devservices.enabled", "false")
             .overrideConfigKey("quarkus.multi-tenant.messaging.kafka.header-name", HEADER);

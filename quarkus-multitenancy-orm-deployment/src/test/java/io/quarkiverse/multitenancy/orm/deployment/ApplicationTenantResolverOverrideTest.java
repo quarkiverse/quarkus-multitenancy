@@ -29,12 +29,12 @@ import io.quarkiverse.multitenancy.orm.deployment.testmodel.inventory.InventoryE
 import io.quarkiverse.multitenancy.orm.deployment.testmodel.users.UserEntity;
 import io.quarkus.hibernate.orm.PersistenceUnitExtension;
 import io.quarkus.hibernate.orm.runtime.tenant.TenantResolver;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class ApplicationTenantResolverOverrideTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
+    static final QuarkusExtensionTest UNIT_TEST = new QuarkusExtensionTest()
             .withApplicationRoot(jar -> jar.addClasses(UserEntity.class, InventoryEntity.class,
                     ApplicationTenantResolver.class))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")

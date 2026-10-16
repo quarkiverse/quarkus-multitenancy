@@ -48,7 +48,7 @@ import io.quarkiverse.multitenancy.messaging.kafka.runtime.channel.KafkaConnecto
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.exception.KafkaTenantPropagationException;
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.interceptor.KafkaTenantIncomingInterceptor;
 import io.quarkiverse.multitenancy.messaging.kafka.runtime.interceptor.KafkaTenantOutgoingInterceptor;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.smallrye.reactive.messaging.kafka.api.IncomingKafkaRecordMetadata;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
 import io.smallrye.reactive.messaging.memory.InMemoryConnector;
@@ -59,7 +59,7 @@ class StrictKafkaTenantPropagationTest {
     private static final String OUTGOING_CHANNEL = "strict-tenant-out";
 
     @RegisterExtension
-    static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
+    static final QuarkusExtensionTest UNIT_TEST = new QuarkusExtensionTest()
             .withApplicationRoot(
                     jar -> jar.addClasses(SenderResource.class, AllChannelsKafka.class, TestInMemoryConnector.class))
             .overrideConfigKey("quarkus.kafka.devservices.enabled", "false")
