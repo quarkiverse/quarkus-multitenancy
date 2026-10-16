@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 /**
  * End-to-end check that an unknown strategy name aborts the whole application at
@@ -31,7 +31,7 @@ import io.quarkus.test.QuarkusUnitTest;
 class StrategyStartupValidationTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
+    static final QuarkusExtensionTest UNIT_TEST = new QuarkusExtensionTest()
             .withApplicationRoot(jar -> jar.addClasses(MultiTenantHttpProcessor.class))
             .overrideConfigKey("quarkus.multi-tenant.http.strategy", "heder,jwt")
             .assertException(throwable -> {

@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.multitenancy.core.runtime.context.TenantContext;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.smallrye.reactive.messaging.kafka.api.IncomingKafkaRecordMetadata;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
 import io.smallrye.reactive.messaging.memory.InMemoryConnector;
@@ -56,7 +56,7 @@ class NonKafkaChannelIsolationTest {
     private static final String OUTGOING_CHANNEL = "non-kafka-out";
 
     @RegisterExtension
-    static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
+    static final QuarkusExtensionTest UNIT_TEST = new QuarkusExtensionTest()
             .withApplicationRoot(jar -> jar.addClasses(Probe.class, SenderResource.class, TestInMemoryConnector.class))
             .overrideConfigKey("quarkus.kafka.devservices.enabled", "false")
             .overrideConfigKey("quarkus.messaging.request-scoped.enabled", "true")

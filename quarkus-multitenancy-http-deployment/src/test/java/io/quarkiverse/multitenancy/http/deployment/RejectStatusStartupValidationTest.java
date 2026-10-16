@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 /**
  * End-to-end check that an out-of-range {@code reject-status} aborts the whole
@@ -32,7 +32,7 @@ import io.quarkus.test.QuarkusUnitTest;
 class RejectStatusStartupValidationTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
+    static final QuarkusExtensionTest UNIT_TEST = new QuarkusExtensionTest()
             .withApplicationRoot(jar -> jar.addClasses(MultiTenantHttpProcessor.class))
             .overrideConfigKey("quarkus.multi-tenant.http.tenant-id.reject-status", "500")
             .assertException(throwable -> {

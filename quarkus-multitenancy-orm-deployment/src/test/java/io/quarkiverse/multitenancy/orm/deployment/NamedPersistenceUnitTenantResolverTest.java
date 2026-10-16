@@ -33,12 +33,12 @@ import io.quarkiverse.multitenancy.orm.deployment.testmodel.users.UserEntity;
 import io.quarkiverse.multitenancy.orm.runtime.adapter.OrmTenantResolverAdapter;
 import io.quarkus.hibernate.orm.PersistenceUnitExtension;
 import io.quarkus.hibernate.orm.runtime.tenant.TenantResolver;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class NamedPersistenceUnitTenantResolverTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
+    static final QuarkusExtensionTest UNIT_TEST = new QuarkusExtensionTest()
             .withApplicationRoot(jar -> jar
                     .addClasses(UserEntity.class, InventoryEntity.class, AuditEntity.class)
                     .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml"))

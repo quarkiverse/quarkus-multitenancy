@@ -21,12 +21,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class UnknownNamedPersistenceUnitTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest UNIT_TEST = new QuarkusUnitTest()
+    static final QuarkusExtensionTest UNIT_TEST = new QuarkusExtensionTest()
             .overrideConfigKey("quarkus.multi-tenant.orm.named-persistence-units", "missing")
             .assertException(throwable -> assertTrue(allMessages(throwable)
                     .contains("quarkus.multi-tenant.orm.named-persistence-units is invalid: "
