@@ -84,7 +84,7 @@ Applications using both HTTP and ORM no longer need to manually disable the ORM 
 
 ### Quarkus LTS alignment
 
-The project is aligned with the shared Quarkiverse Quarkus LTS policy and now targets Quarkus `3.40.1`. Deployment tests use the current `QuarkusExtensionTest` API so they remain compatible with the latest Quarkus main snapshots.
+The project is aligned with the shared Quarkiverse Quarkus LTS policy and now targets Quarkus `3.33.3.1`. The alignment was validated across the full JVM reactor and native integration tests without requiring compatibility changes. (PR #77 — **Align Quarkus version with the shared LTS policy** — @lu1tr0n)
 
 ---
 
@@ -135,7 +135,7 @@ quarkus.messaging.request-scoped.enabled=true
 - Kafka propagation and lifecycle coverage — PR #61 **Propagate tenants through Kafka messaging** — @mathias82.
 - Combined HTTP + ORM regression coverage — PR #73 **Unify HTTP and ORM tenant resolution** — @mathias82.
 - Reserved `__bootstrap` regression coverage — PR #69 **fix: prevent external selection of the ORM bootstrap tenant** — @mathias82.
-- Quarkus LTS alignment updated to `3.40.1`, with deployment tests migrated to `QuarkusExtensionTest` for Quarkus main compatibility.
+- Quarkus LTS alignment validated with the full JVM reactor and native integration tests — PR #77 **Align Quarkus version with the shared LTS policy** — @lu1tr0n.
 
 ---
 
@@ -147,7 +147,7 @@ Other project maintenance includes:
 
 - PR #28 **docs: complete public-API Javadoc and silence default-constructor doclint noise** — @lu1tr0n,
 - PR #31 **chore: add Apache-2.0 license headers to source files** — @lu1tr0n,
-- Quarkus dependency updates followed by explicit alignment to the supported `3.40.1` LTS,
+- Quarkus dependency updates through `3.38.0`, followed by explicit alignment to the supported LTS `3.33.3.1` in PR #77,
 - PR #55 **chore: Configure Renovate** — @renovate[bot],
 - PR #59 **chore: drop Dependabot in favor of Renovate** — @lu1tr0n,
 - CI action updates,
@@ -179,7 +179,7 @@ The ORM adapter currently targets the default Hibernate ORM persistence unit. Ra
 6. For combined HTTP + ORM applications, remove the old header-filter-disable workaround unless intentionally required.
 7. Review asynchronous boundaries: supported Quarkus request propagation is automatic, raw executors are not.
 8. For Kafka consumers, enable `quarkus.messaging.request-scoped.enabled=true` and choose appropriate missing-tenant/failure policies.
-9. Validate application compatibility with the Quarkus `3.40.1` LTS line used by this release.
+9. Validate application compatibility with the Quarkus `3.33.3.1` LTS line used by this release.
 
 ---
 
