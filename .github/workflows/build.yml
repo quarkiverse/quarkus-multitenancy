@@ -56,6 +56,25 @@ jobs:
           java-version: 21
           cache: 'maven'
 
+      - name: Prepare PostgreSQL image
+        timeout-minutes: 5
+        run: |
+          primary_image="public.ecr.aws/docker/library/postgres:18"
+          fallback_image="docker.io/library/postgres:18"
+
+          if docker pull "$primary_image"; then
+            exit 0
+          fi
+
+          echo "::warning::PostgreSQL pull from ECR failed; trying Docker Hub."
+          if ! docker pull "$fallback_image"; then
+            echo "::error::Unable to pull PostgreSQL 18 from either ECR or Docker Hub."
+            exit 1
+          fi
+
+          # Testcontainers expects the ECR image name, even when Docker Hub supplied it.
+          docker tag "$fallback_image" "$primary_image"
+
       - name: Build with Maven
         run: mvn -B clean install -Dno-format
 
