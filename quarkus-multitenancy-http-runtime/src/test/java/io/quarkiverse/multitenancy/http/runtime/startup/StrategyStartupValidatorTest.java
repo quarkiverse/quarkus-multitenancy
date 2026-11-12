@@ -68,6 +68,11 @@ class StrategyStartupValidatorTest {
     }
 
     @Test
+    void rejectsDuplicateNone() {
+        assertThrows(IllegalStateException.class, () -> validatorWith("none", "none").onStart(null));
+    }
+
+    @Test
     void acceptsDuplicateStrategies() {
         assertDoesNotThrow(() -> validatorWith("header", "header").onStart(null));
     }
@@ -90,6 +95,7 @@ class StrategyStartupValidatorTest {
         assertTrue(message.contains("jwt"));
         assertTrue(message.contains("cookie"));
         assertTrue(message.contains("path"));
+        assertTrue(message.contains("none"));
     }
 
     @Test
