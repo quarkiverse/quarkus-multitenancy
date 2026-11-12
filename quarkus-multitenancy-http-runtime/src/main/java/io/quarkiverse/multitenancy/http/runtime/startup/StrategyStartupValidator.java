@@ -63,13 +63,24 @@ public class StrategyStartupValidator {
         }
 
         List<String> unknown = new ArrayList<>();
+        boolean none = false;
+        int namedStrategies = 0;
         for (String configured : config.strategy()) {
             if (configured == null || configured.isBlank()) {
+                continue;
+            }
+            namedStrategies++;
+            if ("none".equalsIgnoreCase(configured.trim())) {
+                none = true;
                 continue;
             }
             if (HttpTenantStrategy.fromConfigValue(configured).isEmpty()) {
                 unknown.add(configured.trim());
             }
+        }
+
+        if (none && namedStrategies != 1) {
+            throw new IllegalStateException("Tenant strategy 'none' must be used alone in " + STRATEGY_PROPERTY);
         }
 
         if (!unknown.isEmpty()) {
