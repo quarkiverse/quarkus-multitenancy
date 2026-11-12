@@ -158,7 +158,7 @@ public class TenantFilter implements ContainerRequestFilter {
     private TenantResolution runConfiguredBuiltins(HttpTenantResolutionContext ctx, List<TenantResolver> resolvers) {
         for (String configured : config.strategy()) {
             // Explicit custom-only mode: do not invoke built-in resolvers.
-            if ("none".equalsIgnoreCase(configured.trim())) {
+            if (configured != null && "none".equalsIgnoreCase(configured.trim())) {
                 continue;
             }
             HttpTenantStrategy strategy = parseStrategy(configured);
