@@ -72,6 +72,7 @@ The built-in HTTP strategies are:
 - `cookie` — tenant from a configurable cookie, default `tenant_cookie`
 - `jwt` — tenant from a verified JWT claim, default `tenant`
 - `path` — tenant from a configurable request-path regular expression
+- `none` — disable built-in strategies and use only custom `TenantResolver` beans (must be specified alone)
 
 The default built-in strategy chain is:
 
@@ -91,6 +92,8 @@ quarkus.multi-tenant.http.default-tenant=public
 quarkus.multi-tenant.http.path-pattern=^/t/([^/]+)(?:/|$)
 quarkus.multi-tenant.http.path-group=1
 ```
+
+To use only custom resolvers, configure `quarkus.multi-tenant.http.strategy=none`. The HTTP filter remains active; if every custom resolver returns `TenantResolution.notApplicable()`, the configured default tenant is used. Do not combine `none` with other strategies.
 
 Custom CDI beans implementing `TenantResolver` run before the configured built-in chain. Annotate custom resolvers with Jakarta `@Priority` when more than one may handle the same request; higher values run first, the default is `0`, and equal priorities are ordered by implementation class name. Built-in resolvers run in the order declared by `quarkus.multi-tenant.http.strategy`.
 
