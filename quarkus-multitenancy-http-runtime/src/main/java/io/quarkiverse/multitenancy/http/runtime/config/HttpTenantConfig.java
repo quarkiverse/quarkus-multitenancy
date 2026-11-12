@@ -44,12 +44,12 @@ public interface HttpTenantConfig {
      *
      * <p>
      * Valid values: {@code header}, {@code jwt}, {@code cookie},
-     * {@code path}.
+     * {@code path}, or {@code none} (custom resolvers only).
      *
      * <p>
      * The default is {@code header,cookie}. The {@code jwt} strategy is
      * opt-in — add it explicitly (for example {@code header,jwt,cookie}) —
-     * because it requires a configured token verification source. The
+     * because it requires a configured token verification source.
      * Set {@code none} as the sole entry to disable built-in strategies while
      * keeping custom resolvers and the default-tenant fallback active.
      * {@code none} cannot be combined with other strategies.
