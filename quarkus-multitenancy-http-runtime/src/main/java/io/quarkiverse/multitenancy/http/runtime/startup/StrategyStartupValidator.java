@@ -44,6 +44,7 @@ import io.quarkus.runtime.StartupEvent;
  * enabled}. Blank entries are ignored (a trailing comma is not a
  * misconfiguration) and an empty chain is allowed, since an application may rely
  * solely on custom {@code TenantResolver} beans plus the default tenant.
+ * Use {@code none} alone to configure that behavior explicitly.
  */
 @ApplicationScoped
 public class StrategyStartupValidator {
@@ -52,7 +53,7 @@ public class StrategyStartupValidator {
 
     private static final String SUPPORTED_VALUES = EnumSet.allOf(HttpTenantStrategy.class).stream()
             .map(Enum::name)
-            .collect(Collectors.joining(", "));
+            .collect(Collectors.joining(", ")) + ", none";
 
     @Inject
     HttpTenantConfig config;
@@ -63,13 +64,24 @@ public class StrategyStartupValidator {
         }
 
         List<String> unknown = new ArrayList<>();
+        boolean none = false;
+        int namedStrategies = 0;
         for (String configured : config.strategy()) {
             if (configured == null || configured.isBlank()) {
+                continue;
+            }
+            namedStrategies++;
+            if ("none".equalsIgnoreCase(configured.trim())) {
+                none = true;
                 continue;
             }
             if (HttpTenantStrategy.fromConfigValue(configured).isEmpty()) {
                 unknown.add(configured.trim());
             }
+        }
+
+        if (none && namedStrategies != 1) {
+            throw new IllegalStateException("Tenant strategy 'none' must be used alone in " + STRATEGY_PROPERTY);
         }
 
         if (!unknown.isEmpty()) {

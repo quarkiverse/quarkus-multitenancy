@@ -96,7 +96,7 @@ The current tenant will be resolved as `tenant1`.
 
 By default, the HTTP module runs the strategy chain `header,cookie`. Each strategy is tried in order, and the first resolver that returns a value wins. The `jwt` strategy is opt-in: add it explicitly (for example `quarkus.multi-tenant.http.strategy=header,jwt,cookie`) because it requires a configured token verification source.
 
-Strategy names are case-insensitive and limited to the built-in values `header`, `jwt`, `cookie`, and `path`. An unknown name (for example a typo such as `heder`) fails fast at startup rather than being silently ignored, so a misconfigured chain is caught immediately instead of changing tenant resolution at runtime.
+Strategy names are case-insensitive and limited to `header`, `jwt`, `cookie`, `path`, and `none`. The special value `none` disables built-in resolution and cannot be combined with other values. An unknown name (for example a typo such as `heder`) fails fast at startup rather than being silently ignored, so a misconfigured chain is caught immediately instead of changing tenant resolution at runtime.
 
 Example showing the default chain in action (header resolves first because the request supplies `X-Tenant`):
 
@@ -115,6 +115,18 @@ X-Tenant: acme
 ----
 
 will resolve the current tenant as `acme`.
+
+=== Custom resolvers only
+
+Set `quarkus.multi-tenant.http.strategy=none` to disable all built-in HTTP strategies while keeping custom CDI `TenantResolver` beans active:
+
+[source,properties]
+----
+quarkus.multi-tenant.http.strategy=none
+quarkus.multi-tenant.http.default-tenant=public
+----
+
+When no custom resolver applies, the configured default tenant is used. The HTTP tenant filter remains enabled. Do not combine `none` with another strategy (for example, `none,header` is invalid).
 
 == Accessing the current tenant
 

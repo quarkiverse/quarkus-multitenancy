@@ -8,6 +8,9 @@ Provides pluggable tenant resolvers for HTTP requests.
 - `CookieTenantResolver` — extracts from cookies
 - `JwtTenantResolver` — extracts claim from JWT
 - `PathTenantResolver` — resolves from URL path
+- `none` — runs custom `TenantResolver` beans without built-in strategies; cannot be combined with other strategies
+
+For custom-only resolution, set `quarkus.multi-tenant.http.strategy=none`. If all custom resolvers return `TenantResolution.notApplicable()`, the configured default tenant is used.
 
 ## Configuration
 

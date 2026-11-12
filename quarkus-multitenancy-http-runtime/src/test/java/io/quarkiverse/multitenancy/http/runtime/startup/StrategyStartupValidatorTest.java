@@ -56,6 +56,23 @@ class StrategyStartupValidatorTest {
     }
 
     @Test
+    void acceptsCustomOnlyMode() {
+        assertDoesNotThrow(() -> validatorWith("none").onStart(null));
+        assertDoesNotThrow(() -> validatorWith(" NONE ").onStart(null));
+    }
+
+    @Test
+    void rejectsNoneCombinedWithBuiltin() {
+        assertThrows(IllegalStateException.class, () -> validatorWith("none", "header").onStart(null));
+        assertThrows(IllegalStateException.class, () -> validatorWith("cookie", "none").onStart(null));
+    }
+
+    @Test
+    void rejectsDuplicateNone() {
+        assertThrows(IllegalStateException.class, () -> validatorWith("none", "none").onStart(null));
+    }
+
+    @Test
     void acceptsDuplicateStrategies() {
         assertDoesNotThrow(() -> validatorWith("header", "header").onStart(null));
     }
@@ -78,6 +95,7 @@ class StrategyStartupValidatorTest {
         assertTrue(message.contains("jwt"));
         assertTrue(message.contains("cookie"));
         assertTrue(message.contains("path"));
+        assertTrue(message.contains("none"));
     }
 
     @Test
