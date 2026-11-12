@@ -50,7 +50,10 @@ public interface HttpTenantConfig {
      * The default is {@code header,cookie}. The {@code jwt} strategy is
      * opt-in — add it explicitly (for example {@code header,jwt,cookie}) —
      * because it requires a configured token verification source. The
-     * {@code path} strategy is likewise opt-in, as it typically requires an
+     * Set {@code none} as the sole entry to disable built-in strategies while
+     * keeping custom resolvers and the default-tenant fallback active.
+     * {@code none} cannot be combined with other strategies.
+     * The {@code path} strategy is likewise opt-in, as it typically requires an
      * application-specific URL prefix (see {@link #pathPattern()}).
      */
     @WithDefault("header,cookie")
