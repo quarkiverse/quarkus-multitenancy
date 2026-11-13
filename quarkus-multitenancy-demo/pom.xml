@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.quarkiverse.multitenancy</groupId>
         <artifactId>quarkus-multitenancy-parent</artifactId>
-        <version>0.3.0</version>
+        <version>999-SNAPSHOT</version>
     </parent>
 
     <name>Quarkus Multitenancy - Demo</name>
