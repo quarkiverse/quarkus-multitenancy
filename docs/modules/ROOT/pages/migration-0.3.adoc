@@ -4,6 +4,10 @@ include::../partials/attributes.adoc[]
 
 Version `0.3.0` remains a preview release. It builds on `0.2.0` with deterministic resolver ordering, named ORM persistence-unit integration, and explicit custom-only HTTP resolution. The release baseline is Java 21 and Quarkus `3.40.1`.
 
+== Java 25 compatibility checks
+
+The full JVM reactor is tested in CI with both Java 21 and Java 25. The compiler still targets Java 21 bytecode, so this release does not require applications to adopt Java 25. Native builds and release tooling remain on Java 21. Applications adopting Java 25 should also verify their own extensions, agents, and runtime dependencies on that JDK.
+
 == Custom resolver precedence
 
 Applications with multiple `TenantResolver` beans should review their precedence. Higher Jakarta `@Priority` values execute first. Resolvers without an explicit annotation use priority `0`; equal priorities are ordered by fully qualified implementation class name.

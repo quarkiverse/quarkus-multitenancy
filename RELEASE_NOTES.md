@@ -45,6 +45,7 @@ See [PR #80](https://github.com/quarkiverse/quarkus-multitenancy/pull/80), [PR #
 - Current Quarkus JUnit artifact names and extension test APIs restore compatibility with Quarkus main snapshots.
 - PostgreSQL test-image pulls use ECR Public with Docker Hub fallback in CI.
 - Java `21` remains the compilation and release-toolchain baseline.
+- The JVM CI matrix now runs the full reactor on both Java `21` and `25`. Native compilation remains on Java `21`.
 
 ## Upgrade from `0.2.0`
 
@@ -62,7 +63,7 @@ The source baseline is commit `f50fdebd9fc83969dbc43c5fa83a9bc355ce8522`. Its [m
 
 The release preparation PR must pass its own checks before merge. Merging the `.github/project.yml` version change invokes the existing Quarkiverse prepare-release workflow; publication is handled by the perform-release workflow.
 
-Pending dependency proposals in the [Renovate dashboard](https://github.com/quarkiverse/quarkus-multitenancy/issues/58), including Quarkus `3.40.1.2` and Java `25`, are not included in this release baseline.
+The Quarkus `3.40.1.2` update proposed in the [Renovate dashboard](https://github.com/quarkiverse/quarkus-multitenancy/issues/58) is not included in this baseline. Java `25` is added as a JVM CI target, while Java `21` remains the minimum compilation version and release toolchain. The new Java `25` job must pass before merging this release preparation.
 
 **Full changelog:** [0.2.0...0.3.0](https://github.com/quarkiverse/quarkus-multitenancy/compare/0.2.0...0.3.0)
 

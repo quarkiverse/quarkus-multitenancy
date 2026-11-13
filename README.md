@@ -17,7 +17,7 @@ The extension focuses on **tenant identification and propagation**. It does not 
 
 ## Preparing 0.3.0
 
-The next preview release adds deterministic custom resolver ordering, named ORM persistence units, a programmatic tenant-connection demo, and `strategy=none` for custom-only HTTP resolution. It targets Java 21 and Quarkus 3.40.1.
+The next preview release adds deterministic custom resolver ordering, named ORM persistence units, a programmatic tenant-connection demo, and `strategy=none` for custom-only HTTP resolution. It targets Quarkus 3.40.1, retains Java 21 as the minimum compilation version, and adds JVM CI coverage on Java 25. Native builds and release tooling continue to use Java 21.
 
 See the [0.3.0 release notes](RELEASE_NOTES.md), [upgrade guide](docs/modules/ROOT/pages/migration-0.3.adoc), and [published 0.2.0 notes](docs/releases/0.2.0.md).
 

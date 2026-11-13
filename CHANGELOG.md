@@ -12,6 +12,7 @@
 ### Changed
 
 - Update the Quarkiverse parent from 22 to 26, the Quarkus baseline from `3.33.3.1` to `3.40.1`, and the test dependencies to the current Quarkus JUnit artifact names. Java 21 remains the compilation baseline.
+- Add full JVM reactor CI coverage on Java 25 alongside Java 21; native builds and release tooling remain on Java 21.
 - Expand the runnable demo's resolution and database-isolation coverage and add a dedicated Kafka tenant propagation guide. (PRs #80, #85)
 
 ### Added
