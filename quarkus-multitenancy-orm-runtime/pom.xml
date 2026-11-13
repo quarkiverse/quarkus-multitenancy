@@ -3,7 +3,7 @@
     <parent>
         <groupId>io.quarkiverse.multitenancy</groupId>
         <artifactId>quarkus-multitenancy-parent</artifactId>
-        <version>999-SNAPSHOT</version>
+        <version>0.3.0</version>
     </parent>
 
     <artifactId>quarkus-multitenancy-orm</artifactId>
