@@ -45,7 +45,7 @@ See [PR #80](https://github.com/quarkiverse/quarkus-multitenancy/pull/80), [PR #
 - Current Quarkus JUnit artifact names and extension test APIs restore compatibility with Quarkus main snapshots.
 - PostgreSQL test-image pulls use ECR Public with Docker Hub fallback in CI.
 - Java `21` remains the compilation and release-toolchain baseline.
-- The JVM CI matrix now runs the full reactor on both Java `21` and `25`. Native compilation remains on Java `21`.
+- The JVM CI matrix now runs the full reactor on both Java `21` and `25`. Native compilation runs in the Java `21` CI job using the Java `25` Mandrel image.
 
 ## Upgrade from `0.2.0`
 
@@ -59,11 +59,11 @@ The `header,cookie` default chain and tenant-id validation defaults were introdu
 
 ## Release validation
 
-Before the Quarkus patch update, source baseline `f50fdebd9fc83969dbc43c5fa83a9bc355ce8522` passed the [main JVM and native build](https://github.com/quarkiverse/quarkus-multitenancy/actions/runs/43318310386). The [release preparation PR](https://github.com/quarkiverse/quarkus-multitenancy/pull/97) also passed its Java 21/25 matrix before the patch update. These earlier results do not validate the new dependency baseline: all JVM and native checks must pass again on Quarkus `3.40.1.2` before merge.
+The release preparation was validated by the Java `21`/`25` JVM CI matrix and the native build checks. Native compilation runs in the Java `21` CI job using the Java `25` Mandrel image. Java `21` remains the minimum compilation version and release-toolchain baseline.
 
-The release preparation PR must pass its own checks before merge. Merging the `.github/project.yml` version change invokes the existing Quarkiverse prepare-release workflow; publication is handled by the perform-release workflow.
+The Quarkus `3.40.1.2` patch update proposed in the [Renovate dashboard](https://github.com/quarkiverse/quarkus-multitenancy/issues/58) is included in this release preparation. The dashboard remains open to track future dependency proposals.
 
-The Quarkus `3.40.1.2` update proposed in the [Renovate dashboard](https://github.com/quarkiverse/quarkus-multitenancy/issues/58) is included in this release preparation. Java `25` is added as a JVM CI target, while Java `21` remains the minimum compilation version and release toolchain. The dashboard remains open to track future dependency proposals.
+Merging the `.github/project.yml` version change invokes the existing Quarkiverse prepare-release workflow; publication is handled separately by the perform-release workflow.
 
 **Full changelog:** [0.2.0...0.3.0](https://github.com/quarkiverse/quarkus-multitenancy/compare/0.2.0...0.3.0)
 
