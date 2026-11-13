@@ -15,9 +15,9 @@ Quarkus Multitenancy provides a generic tenant-resolution contract and a request
 
 The extension focuses on **tenant identification and propagation**. It does not create database, schema, cache, or authorization isolation by itself; those remain application and framework configuration concerns.
 
-## Preparing 0.3.0
+## What's new in 0.3.0
 
-The next preview release adds deterministic custom resolver ordering, named ORM persistence units, a programmatic tenant-connection demo, and `strategy=none` for custom-only HTTP resolution. It targets Quarkus 3.40.1.2, retains Java 21 as the minimum compilation version, and adds JVM CI coverage on Java 25. Native builds and release tooling continue to use Java 21.
+Version 0.3.0 adds deterministic custom resolver ordering, named ORM persistence units, a programmatic tenant-connection demo, and `strategy=none` for custom-only HTTP resolution. It targets Quarkus 3.40.1.2, retains Java 21 as the minimum compilation version, and adds JVM CI coverage on Java 25. Native compilation runs in the Java 21 CI job using the Java 25 Mandrel image; release tooling retains its Java 21 baseline.
 
 See the [0.3.0 release notes](RELEASE_NOTES.md), [upgrade guide](docs/modules/ROOT/pages/migration-0.3.adoc), and [published 0.2.0 notes](docs/releases/0.2.0.md).
 
