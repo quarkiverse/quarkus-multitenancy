@@ -41,7 +41,7 @@ See [PR #80](https://github.com/quarkiverse/quarkus-multitenancy/pull/80), [PR #
 ## Documentation and maintenance
 
 - Dedicated Kafka propagation guide and expanded project overview ([PR #85](https://github.com/quarkiverse/quarkus-multitenancy/pull/85)).
-- Quarkiverse parent updated from `22` to `26`; Quarkus baseline updated from `3.33.3.1` to `3.40.1`.
+- Quarkiverse parent updated from `22` to `26`; Quarkus baseline updated from `3.33.3.1` to `3.40.1.2`, including the patch update tracked in the Renovate dashboard (#58).
 - Current Quarkus JUnit artifact names and extension test APIs restore compatibility with Quarkus main snapshots.
 - PostgreSQL test-image pulls use ECR Public with Docker Hub fallback in CI.
 - Java `21` remains the compilation and release-toolchain baseline.
@@ -52,18 +52,18 @@ See [PR #80](https://github.com/quarkiverse/quarkus-multitenancy/pull/80), [PR #
 1. Review applications with multiple custom resolvers: ordering is now deterministic. Set distinct `@Priority` values where precedence matters; higher values run first.
 2. Opt into named ORM persistence units only where needed using `quarkus.multi-tenant.orm.named-persistence-units`.
 3. For custom-only HTTP resolution, use `strategy=none` rather than an empty strategy value. Keep the HTTP filter enabled.
-4. Validate your application against the Quarkus `3.40.1` baseline.
+4. Validate your application against the Quarkus `3.40.1.2` baseline.
 5. Treat the connection-catalog demo as a starting point: implement production secret management and lifecycle handling appropriate to your application.
 
 The `header,cookie` default chain and tenant-id validation defaults were introduced in `0.2.0` and are unchanged in this release. Kafka propagation and `TenantContextRunner` were also already available in `0.2.0`.
 
 ## Release validation
 
-The source baseline is commit `f50fdebd9fc83969dbc43c5fa83a9bc355ce8522`. Its [main build](https://github.com/quarkiverse/quarkus-multitenancy/actions/runs/43318310386) passed both `mvn -B clean install -Dno-format` and `mvn -B install -Dnative -Dquarkus.native.container-build -Dnative.surefire.skip`.
+Before the Quarkus patch update, source baseline `f50fdebd9fc83969dbc43c5fa83a9bc355ce8522` passed the [main JVM and native build](https://github.com/quarkiverse/quarkus-multitenancy/actions/runs/43318310386). The [release preparation PR](https://github.com/quarkiverse/quarkus-multitenancy/pull/97) also passed its Java 21/25 matrix before the patch update. These earlier results do not validate the new dependency baseline: all JVM and native checks must pass again on Quarkus `3.40.1.2` before merge.
 
 The release preparation PR must pass its own checks before merge. Merging the `.github/project.yml` version change invokes the existing Quarkiverse prepare-release workflow; publication is handled by the perform-release workflow.
 
-The Quarkus `3.40.1.2` update proposed in the [Renovate dashboard](https://github.com/quarkiverse/quarkus-multitenancy/issues/58) is not included in this baseline. Java `25` is added as a JVM CI target, while Java `21` remains the minimum compilation version and release toolchain. The new Java `25` job must pass before merging this release preparation.
+The Quarkus `3.40.1.2` update proposed in the [Renovate dashboard](https://github.com/quarkiverse/quarkus-multitenancy/issues/58) is included in this release preparation. Java `25` is added as a JVM CI target, while Java `21` remains the minimum compilation version and release toolchain. The dashboard remains open to track future dependency proposals.
 
 **Full changelog:** [0.2.0...0.3.0](https://github.com/quarkiverse/quarkus-multitenancy/compare/0.2.0...0.3.0)
 

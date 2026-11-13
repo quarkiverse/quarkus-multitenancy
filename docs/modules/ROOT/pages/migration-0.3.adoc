@@ -2,7 +2,7 @@
 
 include::../partials/attributes.adoc[]
 
-Version `0.3.0` remains a preview release. It builds on `0.2.0` with deterministic resolver ordering, named ORM persistence-unit integration, and explicit custom-only HTTP resolution. The release baseline is Java 21 and Quarkus `3.40.1`.
+Version `0.3.0` remains a preview release. It builds on `0.2.0` with deterministic resolver ordering, named ORM persistence-unit integration, and explicit custom-only HTTP resolution. The release baseline is Java 21 and Quarkus `3.40.1.2`.
 
 == Java 25 compatibility checks
 
