@@ -4,3 +4,4 @@
 * xref:runtime-contracts.adoc[Runtime contracts and validation boundaries]
 * xref:programmatic-tenant-connections.adoc[Programmatic tenant connections]
 * xref:migration-0.2.adoc[Migration notes for 0.2]
+* xref:migration-0.3.adoc[Migration notes for 0.3]

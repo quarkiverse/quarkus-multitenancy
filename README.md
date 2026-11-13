@@ -15,6 +15,12 @@ Quarkus Multitenancy provides a generic tenant-resolution contract and a request
 
 The extension focuses on **tenant identification and propagation**. It does not create database, schema, cache, or authorization isolation by itself; those remain application and framework configuration concerns.
 
+## Preparing 0.3.0
+
+The next preview release adds deterministic custom resolver ordering, named ORM persistence units, a programmatic tenant-connection demo, and `strategy=none` for custom-only HTTP resolution. It targets Java 21 and Quarkus 3.40.1.
+
+See the [0.3.0 release notes](RELEASE_NOTES.md), [upgrade guide](docs/modules/ROOT/pages/migration-0.3.adoc), and [published 0.2.0 notes](docs/releases/0.2.0.md).
+
 ## Why this exists
 
 Quarkus already provides powerful building blocks such as OIDC multitenancy and Hibernate ORM multitenancy. Applications still frequently need a common tenant abstraction that can be resolved once and consumed consistently across HTTP, persistence, messaging, background work, and custom integrations.

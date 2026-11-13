@@ -1,227 +1,69 @@
-# Release notes — `0.2.0`
+# Release notes — `0.3.0`
 
-Second preview release of the **Quarkus Multitenancy** extension.
+Third preview release of Quarkus Multitenancy, building on `0.2.0` with deterministic custom resolver ordering, named Hibernate ORM persistence units, a programmatic tenant-connection example, and explicit custom-only HTTP resolution.
 
-> **Status:** preview. The API may evolve before `1.0`. Pin the exact version while we stabilise.
-
----
-
-## What's in this release
-
-`0.2.0` substantially expands the extension beyond synchronous HTTP tenant resolution. It adds tenant-scoped background execution and Kafka propagation, defines the supported reactive/asynchronous request contract, strengthens tenant-id validation and startup checks, protects internal ORM tenant state, unifies HTTP and ORM request resolution, and aligns the project with the shared Quarkiverse Quarkus LTS policy.
-
-The extension now provides four main integration areas:
-
-| Extension | Purpose |
-|-----------|---------|
-| `io.quarkiverse.multitenancy:quarkus-multitenancy-core` | `TenantResolver` SPI, request-scoped `TenantContext`, shared tenant-id validation, reserved tenant identifiers, and `TenantContextRunner`. |
-| `io.quarkiverse.multitenancy:quarkus-multitenancy-http` | HTTP tenant resolution through header, JWT claim, cookie, and path strategies. |
-| `io.quarkiverse.multitenancy:quarkus-multitenancy-messaging-kafka` | Tenant propagation through Kafka record headers with validation and lifecycle handling. |
-| `io.quarkiverse.multitenancy:quarkus-multitenancy-orm` | Bridges the shared `TenantContext` into Hibernate ORM multitenancy. |
-
----
+The extension remains preview; pin the exact version while its API stabilises.
 
 ## Highlights
 
-### Tenant-scoped background work
+### Deterministic custom resolver ordering
 
-`TenantContextRunner` is a first-class API for running synchronous `Runnable` or `Supplier<T>` work under a temporary tenant, including scheduled jobs, startup observers, and maintenance tasks.
+Multiple `TenantResolver` beans now execute in a stable order: higher Jakarta `@Priority` values first, then implementation class name for equal priorities. Resolvers without an explicit annotation use priority `0`. Ambiguous beans of the same type and priority fail startup with an actionable error. The built-in HTTP chain still follows `quarkus.multi-tenant.http.strategy`.
 
-It activates a CDI request context when one is not already active, preserves and restores the previous tenant, and safely supports nested, sequential, successful, and failing invocations.
+See [PR #79](https://github.com/quarkiverse/quarkus-multitenancy/pull/79).
 
-The runner is intentionally synchronous-only. Returning a deferred Mutiny `Uni` or `CompletionStage` is rejected immediately so asynchronous work cannot silently outlive the temporary tenant binding. (PR #60 — **Add tenant-scoped background work API** — @mathias82)
+### Named Hibernate ORM persistence units
 
-### Kafka tenant propagation
+Use `quarkus.multi-tenant.orm.named-persistence-units` to attach the shared `TenantContext` adapter to selected multitenant named persistence units. The default unit remains integrated automatically, and application-provided tenant resolvers retain precedence. Invalid names and non-multitenant selections fail the build.
 
-A new optional `quarkus-multitenancy-messaging-kafka` extension propagates tenant identity through SmallRye Reactive Messaging Kafka boundaries. (PR #61 — **Propagate tenants through Kafka messaging** — @mathias82)
+See [PR #81](https://github.com/quarkiverse/quarkus-multitenancy/pull/81).
 
-It provides automatic outgoing/incoming propagation, ack/nack lifecycle cleanup, explicit metadata precedence, configurable headers, strict missing-tenant policies, UTF-8 decoding and validation, custom `KafkaTenantValidator` support, and fail-fast configuration validation.
+### Custom-only HTTP resolution
 
-For incoming propagation, enable the Quarkus Messaging request scope:
-
-```properties
-quarkus.messaging.request-scoped.enabled=true
-```
-
-### Reactive and asynchronous request propagation
-
-The supported tenant-context behavior across Quarkus REST asynchronous boundaries is now explicitly documented and tested. (PR #72 — **Add reactive and async tenant propagation contract tests (#66)** — @lu1tr0n)
-
-Within the same HTTP request, the resolved tenant remains available across supported Mutiny `Uni`, `@Blocking` / worker-thread, `ManagedExecutor`, failure, and cancellation boundaries. Raw JDK executor submissions are not automatically context-aware.
-
-### Tenant identifier hardening
-
-Every tenant identifier resolved through the HTTP pipeline is validated before it reaches `TenantContext`. (PR #27 — **feat(http): validate resolved tenant id length and character set (#16)** — @lu1tr0n; PR #34 — **feat(http): make tenant-id reject status configurable (#29)** — @lu1tr0n)
-
-The default policy is:
+Applications can disable all built-in HTTP tenant strategies explicitly:
 
 ```properties
-quarkus.multi-tenant.http.tenant-id.validation-enabled=true
-quarkus.multi-tenant.http.tenant-id.max-length=64
-quarkus.multi-tenant.http.tenant-id.pattern=[A-Za-z0-9_-]+
-quarkus.multi-tenant.http.tenant-id.reject-status=400
+quarkus.multi-tenant.http.strategy=none
 ```
 
-Rejected identifiers are sanitized and length-bounded before logging. Only `4xx` values are accepted for `reject-status`; invalid values fail fast at startup. (PR #41 — **Fail fast on non-4xx tenant-id reject-status** — @lu1tr0n)
+Custom `TenantResolver` beans, tenant-id validation, and the configured default-tenant fallback remain active. Configure `none` by itself; combining it with another strategy fails startup. This resolves [issue #95](https://github.com/quarkiverse/quarkus-multitenancy/issues/95) without requiring an empty configuration value.
 
-The configured `default-tenant` is validated against the same policy at startup. (PR #43 — **Fail fast when default-tenant violates the tenant-id policy** — @lu1tr0n)
+See [PR #96](https://github.com/quarkiverse/quarkus-multitenancy/pull/96).
 
-### Safer HTTP strategy configuration
+### Programmatic tenant connections and runnable scenarios
 
-The default HTTP strategy chain is now `header,cookie`; JWT is explicit opt-in. (PR #32 — **feat(http): default strategy chain to header,cookie (#15)** — @lu1tr0n)
+The demo uses Quarkus' existing `TenantConnectionResolver` SPI with an application-owned catalog and Agroal pools integrated with Narayana transactions. It includes Docker-free H2 routing tests and PostgreSQL Testcontainers coverage, plus seeded databases that demonstrate tenant isolation across HTTP resolution scenarios.
 
-Built-in strategy names are case-insensitive, and unknown names fail fast at startup. (PR #42 — **Fail fast on unknown HTTP tenant strategy names** — @lu1tr0n)
+This is an application example, not a new runtime tenant-registration API. Quarkus caches the provider returned for a tenant; live pool replacement, credential rotation, removal, and re-registration remain outside this example's scope.
 
-Custom `TenantResolver` precedence is documented explicitly: custom resolvers execute before the configured built-in chain. (PR #45 — **docs: clarify TenantResolver precedence for custom resolvers** — @ahfoysal)
+See [PR #80](https://github.com/quarkiverse/quarkus-multitenancy/pull/80), [PR #82](https://github.com/quarkiverse/quarkus-multitenancy/pull/82), and the [demo guide](quarkus-multitenancy-demo/README.md).
 
-### Reserved ORM bootstrap tenant
+## Documentation and maintenance
 
-The internal Hibernate ORM tenant identifier `__bootstrap` is reserved and cannot be selected from externally controlled tenant input. (PR #69 — **fix: prevent external selection of the ORM bootstrap tenant** — @mathias82)
+- Dedicated Kafka propagation guide and expanded project overview ([PR #85](https://github.com/quarkiverse/quarkus-multitenancy/pull/85)).
+- Quarkiverse parent updated from `22` to `26`; Quarkus baseline updated from `3.33.3.1` to `3.40.1`.
+- Current Quarkus JUnit artifact names and extension test APIs restore compatibility with Quarkus main snapshots.
+- PostgreSQL test-image pulls use ECR Public with Docker Hub fallback in CI.
+- Java `21` remains the compilation and release-toolchain baseline.
 
-### Unified HTTP and ORM tenant resolution
+## Upgrade from `0.2.0`
 
-Applications using both HTTP and ORM no longer need to manually disable the ORM header filter. The HTTP pipeline is authoritative and the ORM filter acts only as fallback. (PR #73 — **Unify HTTP and ORM tenant resolution** — @mathias82)
+1. Review applications with multiple custom resolvers: ordering is now deterministic. Set distinct `@Priority` values where precedence matters; higher values run first.
+2. Opt into named ORM persistence units only where needed using `quarkus.multi-tenant.orm.named-persistence-units`.
+3. For custom-only HTTP resolution, use `strategy=none` rather than an empty strategy value. Keep the HTTP filter enabled.
+4. Validate your application against the Quarkus `3.40.1` baseline.
+5. Treat the connection-catalog demo as a starting point: implement production secret management and lifecycle handling appropriate to your application.
 
-### Quarkus LTS alignment
+The `header,cookie` default chain and tenant-id validation defaults were introduced in `0.2.0` and are unchanged in this release. Kafka propagation and `TenantContextRunner` were also already available in `0.2.0`.
 
-The project is aligned with the shared Quarkiverse Quarkus LTS policy and now targets Quarkus `3.33.3.1`. The alignment was validated across the full JVM reactor and native integration tests without requiring compatibility changes. (PR #77 — **Align Quarkus version with the shared LTS policy** — @lu1tr0n)
+## Release validation
 
----
+The source baseline is commit `f50fdebd9fc83969dbc43c5fa83a9bc355ce8522`. Its [main build](https://github.com/quarkiverse/quarkus-multitenancy/actions/runs/43318310386) passed both `mvn -B clean install -Dno-format` and `mvn -B install -Dnative -Dquarkus.native.container-build -Dnative.surefire.skip`.
 
-## Migration notes from `0.1.0`
+The release preparation PR must pass its own checks before merge. Merging the `.github/project.yml` version change invokes the existing Quarkiverse prepare-release workflow; publication is handled by the perform-release workflow.
 
-### JWT is now opt-in
+Pending dependency proposals in the [Renovate dashboard](https://github.com/quarkiverse/quarkus-multitenancy/issues/58), including Quarkus `3.40.1.2` and Java `25`, are not included in this release baseline.
 
-If your application relied on JWT because it was part of the old implicit `header,jwt,cookie` chain, configure it explicitly:
+**Full changelog:** [0.2.0...0.3.0](https://github.com/quarkiverse/quarkus-multitenancy/compare/0.2.0...0.3.0)
 
-```properties
-quarkus.multi-tenant.http.strategy=header,jwt,cookie
-```
-
-### Tenant-id validation is enabled by default
-
-Identifiers accepted by `0.1.0` may now be rejected if they are longer than 64 characters or contain characters outside `[A-Za-z0-9_-]`. Configure a wider policy deliberately if required.
-
-### Tenant-id validation failures now default to HTTP 400
-
-Syntactically invalid tenant identifiers use HTTP `400` by default, while authentication-related resolver rejection remains HTTP `401`. Only statuses from `400` through `499` are accepted.
-
-### Combined HTTP + ORM applications
-
-The old `quarkus.multi-tenant.orm.header-filter.enabled=false` workaround is no longer required merely to prevent ORM from competing with HTTP resolution.
-
-### ORM-only tenant validation
-
-The ORM fallback header now uses the shared tenant-id validation policy. For example, `acme.co` is rejected by the default `[A-Za-z0-9_-]+` policy unless the pattern is widened.
-
-### Background and asynchronous work
-
-`TenantContextRunner` supports synchronous callbacks only. Supported Quarkus request-associated asynchronous boundaries propagate context automatically; raw executors do not.
-
-### Kafka consumers
-
-Incoming Kafka tenant propagation requires:
-
-```properties
-quarkus.messaging.request-scoped.enabled=true
-```
-
----
-
-## Testing and reliability
-
-- Native-mode HTTP/ORM integration coverage — PR #47 **test(http): native integration tests for tenant resolution** — @lu1tr0n.
-- Reactive/asynchronous JVM and native propagation coverage — PR #72 **Add reactive and async tenant propagation contract tests (#66)** — @lu1tr0n.
-- Kafka propagation and lifecycle coverage — PR #61 **Propagate tenants through Kafka messaging** — @mathias82.
-- Combined HTTP + ORM regression coverage — PR #73 **Unify HTTP and ORM tenant resolution** — @mathias82.
-- Reserved `__bootstrap` regression coverage — PR #69 **fix: prevent external selection of the ORM bootstrap tenant** — @mathias82.
-- Quarkus LTS alignment validated with the full JVM reactor and native integration tests — PR #77 **Align Quarkus version with the shared LTS policy** — @lu1tr0n.
-
----
-
-## Documentation and project maintenance
-
-The documentation has been aligned with the runtime implementation, including dedicated propagation/runtime-contract references, README guidance, Kafka configuration, HTTP/ORM behavior, validation boundaries, migration notes, and propagation limitations. (PR #74 — **Align documentation with multitenancy runtime contracts** — @mathias82)
-
-Other project maintenance includes:
-
-- PR #28 **docs: complete public-API Javadoc and silence default-constructor doclint noise** — @lu1tr0n,
-- PR #31 **chore: add Apache-2.0 license headers to source files** — @lu1tr0n,
-- Quarkus dependency updates through `3.38.0`, followed by explicit alignment to the supported LTS `3.33.3.1` in PR #77,
-- PR #55 **chore: Configure Renovate** — @renovate[bot],
-- PR #59 **chore: drop Dependabot in favor of Renovate** — @lu1tr0n,
-- CI action updates,
-- PR #71 **chore(deps): update postgres docker tag to v17** — @renovate[bot],
-- PR #75 **Update postgres Docker tag to v18** — @renovate[bot].
-
----
-
-## Known limitations / planned follow-ups
-
-The following are intentionally outside the `0.2.0` release scope:
-
-- runtime ORM tenant registration / dynamic connection providers (#50),
-- deterministic ordering for multiple custom `TenantResolver` implementations (#64),
-- named Hibernate ORM persistence-unit integration (#65),
-- optional tenant correlation for logs, metrics, and traces (#67).
-
-The ORM adapter currently targets the default Hibernate ORM persistence unit. Raw executor submissions are not automatically tenant-context aware, and `TenantContextRunner` intentionally remains synchronous-only.
-
----
-
-## Upgrade checklist
-
-1. Opt into `jwt` explicitly if tenant resolution depends on verified JWT claims.
-2. Check existing tenant identifiers against the new default length/pattern policy.
-3. Review any custom `tenant-id.reject-status`; it must be a `4xx` value.
-4. Verify that the configured `default-tenant` satisfies the tenant-id policy.
-5. For ORM-only applications, verify existing header tenant identifiers against the shared validation policy.
-6. For combined HTTP + ORM applications, remove the old header-filter-disable workaround unless intentionally required.
-7. Review asynchronous boundaries: supported Quarkus request propagation is automatic, raw executors are not.
-8. For Kafka consumers, enable `quarkus.messaging.request-scoped.enabled=true` and choose appropriate missing-tenant/failure policies.
-9. Validate application compatibility with the Quarkus `3.33.3.1` LTS line used by this release.
-
----
-
-## Merged pull requests
-
-The following pull requests were merged after `0.1.0` and are included in `0.2.0`:
-
-- PR #27 — **feat(http): validate resolved tenant id length and character set (#16)** — @lu1tr0n
-- PR #28 — **docs: complete public-API Javadoc and silence default-constructor doclint noise** — @lu1tr0n
-- PR #31 — **chore: add Apache-2.0 license headers to source files** — @lu1tr0n
-- PR #32 — **feat(http): default strategy chain to header,cookie (#15)** — @lu1tr0n
-- PR #33 — **Bump com.mycila:license-maven-plugin from 4.6 to 5.0.0** — @dependabot[bot]
-- PR #34 — **feat(http): make tenant-id reject status configurable (#29)** — @lu1tr0n
-- PR #35 — **Bump quarkus.version from 3.36.2 to 3.37.0** — @dependabot[bot]
-- PR #41 — **Fail fast on non-4xx tenant-id reject-status** — @lu1tr0n
-- PR #42 — **Fail fast on unknown HTTP tenant strategy names** — @lu1tr0n
-- PR #43 — **Fail fast when default-tenant violates the tenant-id policy** — @lu1tr0n
-- PR #44 — **chore(deps): bump quarkus.version from 3.37.0 to 3.37.1** — @dependabot[bot]
-- PR #45 — **docs: clarify TenantResolver precedence for custom resolvers** — @ahfoysal
-- PR #46 — **chore(deps): bump quarkus.version from 3.37.1 to 3.37.2** — @dependabot[bot]
-- PR #47 — **test(http): native integration tests for tenant resolution** — @lu1tr0n
-- PR #51 — **chore(deps): bump quarkus.version from 3.37.2 to 3.37.3** — @dependabot[bot]
-- PR #53 — **chore(deps-dev): bump com.mycila:license-maven-plugin from 5.0.0 to 5.1.1** — @dependabot[bot]
-- PR #54 — **chore(deps): bump quarkus.version from 3.37.3 to 3.38.0** — @dependabot[bot]
-- PR #55 — **chore: Configure Renovate** — @renovate[bot]
-- PR #56 — **chore(deps): update actions/checkout action to v7** — @renovate[bot]
-- PR #57 — **chore(deps): update actions/setup-java action to v5** — @renovate[bot]
-- PR #59 — **chore: drop Dependabot in favor of Renovate** — @lu1tr0n
-- PR #60 — **Add tenant-scoped background work API** — @mathias82
-- PR #61 — **Propagate tenants through Kafka messaging** — @mathias82
-- PR #69 — **fix: prevent external selection of the ORM bootstrap tenant** — @mathias82
-- PR #71 — **chore(deps): update postgres docker tag to v17** — @renovate[bot]
-- PR #72 — **Add reactive and async tenant propagation contract tests (#66)** — @lu1tr0n
-- PR #73 — **Unify HTTP and ORM tenant resolution** — @mathias82
-- PR #74 — **Align documentation with multitenancy runtime contracts** — @mathias82
-- PR #75 — **Update postgres Docker tag to v18** — @renovate[bot]
-- PR #77 — **Align Quarkus version with the shared LTS policy** — @lu1tr0n
-
----
-
-## Acknowledgements
-
-Maintainers: [@mathias82](https://github.com/mathias82), [@lu1tr0n](https://github.com/lu1tr0n).
-
-Thanks to [@ahfoysal](https://github.com/ahfoysal) for the custom resolver precedence documentation contribution, and to everyone who reviewed, tested, documented, and hardened the tenant propagation and resolution behavior in this release.
+Previous release: [0.2.0 notes](docs/releases/0.2.0.md).

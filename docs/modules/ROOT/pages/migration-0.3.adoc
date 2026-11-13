@@ -1,0 +1,51 @@
+= Migration notes for 0.3
+
+include::../partials/attributes.adoc[]
+
+Version `0.3.0` remains a preview release. It builds on `0.2.0` with deterministic resolver ordering, named ORM persistence-unit integration, and explicit custom-only HTTP resolution. The release baseline is Java 21 and Quarkus `3.40.1`.
+
+== Custom resolver precedence
+
+Applications with multiple `TenantResolver` beans should review their precedence. Higher Jakarta `@Priority` values execute first. Resolvers without an explicit annotation use priority `0`; equal priorities are ordered by fully qualified implementation class name.
+
+Use distinct priorities when application semantics require a particular order. Multiple beans with the same implementation type and priority fail startup rather than relying on CDI discovery order.
+
+Custom HTTP resolvers still run before the configured built-in strategy chain. The `quarkus.multi-tenant.http.strategy` property continues to control built-in ordering.
+
+== Custom-only HTTP resolution
+
+To resolve tenants exclusively through application-provided resolvers, configure:
+
+[source,properties]
+----
+quarkus.multi-tenant.http.strategy=none
+----
+
+Keep `quarkus.multi-tenant.http.enabled=true` (the default). The HTTP filter still applies tenant-id validation and uses the configured default tenant when all custom resolvers return `TenantResolution.notApplicable()`.
+
+The value `none` must be the sole strategy. Combining it with another strategy fails startup. Use this explicit value instead of assigning an empty string to `strategy`, which does not provide a valid required configuration list.
+
+== Named ORM persistence units
+
+The default persistence unit remains integrated automatically. To attach the shared `TenantContext` adapter to multitenant named units, opt in explicitly:
+
+[source,properties]
+----
+quarkus.multi-tenant.orm.named-persistence-units=users,inventory
+----
+
+The selected persistence units must exist and be configured for Hibernate ORM multitenancy. Invalid selections fail the build. Application-provided tenant resolvers retain precedence over the built-in adapter.
+
+See xref:index.adoc[the ORM configuration reference] for the complete setup.
+
+== Programmatic tenant connections
+
+The expanded demo demonstrates Quarkus' existing `TenantConnectionResolver` SPI, an application-owned connection catalog, and Agroal pools with Narayana transaction integration. It does not add a new extension API for runtime tenant registration.
+
+Quarkus caches the provider returned for each tenant. Changing a catalog record does not replace an already resolved provider. The example keeps providers stable until shutdown and does not implement credential rotation, live pool replacement, draining, removal, or re-registration. Production applications must also supply appropriate secrets, health, and metrics integration.
+
+See xref:programmatic-tenant-connections.adoc[Programmatic tenant connections] for the example and its lifecycle boundaries.
+
+== Existing 0.2 behavior
+
+The default HTTP chain remains `header,cookie`; JWT stays opt-in. Tenant-id validation defaults, Kafka propagation, and the synchronous `TenantContextRunner` contract are unchanged. If upgrading from `0.1.0`, also follow xref:migration-0.2.adoc[the 0.2 migration guide].

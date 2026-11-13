@@ -2,11 +2,30 @@
 
 ## Unreleased
 
+## 0.3.0
+
+### Fixed
+
+- Support `quarkus.multi-tenant.http.strategy=none` to disable built-in HTTP strategies while retaining custom resolvers, tenant-id validation, and default-tenant fallback. `none` must be the sole strategy. (#95, PR #96)
+- Restore Quarkus main snapshot compatibility and make PostgreSQL test-image pulls resilient with an ECR Public / Docker Hub fallback. (PRs #89, #91–#94)
+
+### Changed
+
+- Update the Quarkiverse parent from 22 to 26, the Quarkus baseline from `3.33.3.1` to `3.40.1`, and the test dependencies to the current Quarkus JUnit artifact names. Java 21 remains the compilation baseline.
+- Expand the runnable demo's resolution and database-isolation coverage and add a dedicated Kafka tenant propagation guide. (PRs #80, #85)
+
 ### Added
 
 - Programmatic tenant-connection demo using Quarkus' existing `TenantConnectionResolver`, an application-owned catalog, Agroal pools with Narayana transaction integration, Docker-free H2 routing tests, and real PostgreSQL Testcontainers coverage. The example documents the provider-cache and lifecycle boundary for the first phase of dynamic tenant onboarding. (#50)
 - Named Hibernate ORM persistence-unit support: configure `quarkus.multi-tenant.orm.named-persistence-units` to attach the shared `TenantContext` adapter to one or more multitenant named persistence units. The default persistence unit remains integrated automatically, application-provided tenant resolvers override the built-in adapter cleanly, and invalid unit names or non-multitenant selections now fail the build with an actionable message. (#65)
 - Deterministic `TenantResolver` ordering: custom resolvers can declare Jakarta `@Priority` (higher values run first), resolvers without an annotation use priority `0`, and equal priorities use the implementation class name as a stable tie-breaker. Ambiguous same-type/same-priority beans now fail startup with an actionable error. Built-in HTTP strategy order remains controlled by `quarkus.multi-tenant.http.strategy`. (#64)
+
+## 0.2.0
+
+See the [archived release notes](docs/releases/0.2.0.md) for the complete release, including background work, Kafka propagation, reactive context contracts, and unified HTTP/ORM resolution.
+
+### Added
+
 - Tenant identifier hardening: a resolved tenant id is now validated against a configurable maximum length (`quarkus.multi-tenant.http.tenant-id.max-length`, default `64`) and a character-set pattern (`quarkus.multi-tenant.http.tenant-id.pattern`, default `[A-Za-z0-9_-]+`) before it is published to the `TenantContext`. A violating identifier is rejected and never reaches downstream consumers (logs, SQL parameters, ORM tenant lookups). Rejected identifiers are sanitised — control characters stripped and length-capped — before being logged, closing a log-injection vector. (#16)
 - Configurable reject status for tenant-id validation: `quarkus.multi-tenant.http.tenant-id.reject-status` (default `400`) sets the HTTP status used when a resolved tenant id fails the length or pattern policy. This is distinct from the `401` returned for an authentication-related rejection (`TenantResolution.Rejected`, e.g. an invalid bearer token), which is unaffected. Set it to `401` to keep a single status for both. (#29)
 - Native-mode integration tests: a new `integration-tests` module exercises the HTTP tenant resolution chain end to end (header resolution, verified-JWT resolution, tenant-id validation, default-tenant fallback and the rejected-resolution path). The assertions run in the JVM as a `@QuarkusTest` and, in CI, against the native binary as a `@QuarkusIntegrationTest`, so native-image regressions in tenant resolution are caught before release and JVM/native behaviour is asserted to be identical. (#40)
